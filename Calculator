@@ -1,0 +1,202 @@
+<!DOCTYPE HTML>
+<!--head -->
+<html>
+ <head>
+  <meta charset="utf-8">
+  <title>Глобальные стили</title>
+  <!--Здесь мы подключаем библиотеку, --> 
+<style>
+
+* {
+	/*внешний отсуп с 4-ч сторн 
+	margin: [значение | проценты | auto] {1,4} | inherit
+		auto Указывает, что размер отступов будет автоматически рассчитан браузером.
+		inherit Наследует значение родителя.
+	*/
+  margin: 0;
+  
+  /* Поля вокруг текста */
+  padding: 0; 
+  box-sizing: border-box;
+}
+/*
+стили селектора body
+В CSS3 были добавлены новые относительные единицы измерения,
+такие как 
+vh, vw, vmin, vmax. 
+Эти единицы вычисляются относительно размеров окна браузера. 
+Для настольных компьютеров ширина окна браузера больше ширины области просмотра (добавляется ширина скроллбара),
+ поэтому если для элемента установить ширину 100vw, то он выйдет за пределы html
+ 
+vh	Эквивалентно 1% высоты окна браузера.
+vw	Эквивалентно 1% ширины окна браузера.
+vmin	Эквивалентно 1% меньшего размера окна браузера по высоте или ширине.
+vmax	Эквивалентно 1% большего размера окна браузера по высоте или ширине.
+ 
+ */
+body {
+  height: 100vh;
+  background: radial-gradient(circle, skyblue, steelblue);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+/*Класс стилей с именем калькулятор*/
+.calculator {
+/*ширина*/
+  width: 100vw; /*320px;*/
+  /*висота*/
+  height: 85vh;/*480px;*/
+  /*цвет фона*/
+  background: #eee;
+  border-radius: 5px;
+  box-shadow: 2px 2px 3px rgba(0, 0, 0, 0.2), -2px -2px 3px rgba(0, 0, 0, 0.2);
+}
+
+/*Если убрать этот класс исщезнет строка ввода
+интересный момент название идет без точки и сразу привязывается к тегу 
+без необходимости указания класса
+*/
+output {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 90vw; /*300px;*/
+  height: 5vh; /*40px;*/
+  background: #fff;
+  margin: 10px auto;
+  border-radius: 5px;
+  font-size: 5em;
+  font-weight: bold;
+  box-shadow: inset 1px 1px 1px rgba(0, 0, 0, 0.3),
+    inset -1px -1px 1px rgba(0, 0, 0, 0.3);
+}
+
+.keyboard {
+  height: 440px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-evenly;
+  align-items: flex-start;
+}
+
+button {
+  margin: 0.5em 1em;
+  width: 18vw; /*40px;*/
+  height: 18vw;/*40px;*/
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 200%;/*1em;*/
+  font-weight: bold;
+}
+</style>
+</head>
+<!--body -->
+<!--создаем контейнер для калькулятора и поле для вводимых символов и результата-->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/6.6.4/math.js"></script>
+<body>
+<!--Тег div определяет любой отдельный блок содержимого и предназначен
+ для деления веб-страницы на фрагменты. 
+ Вы можете объединить любой набор логически связанных элементов в единственном блоке <div>.
+ -->
+<div class="calculator">
+    <output></output>
+</div>
+<script>
+
+const output 	= document.querySelector('output');
+const div 		= document.createElement('div');
+div.classList.add('keyboard');
+
+document.querySelector('.calculator').appendChild(div);
+
+//берем строку через пробел вводим названия кнопок
+//при помочи метода split прообразуем строку в массив аргумент пробел разделитель
+//Далее используем метод map для преобразования массива
+var keyboard 	= 'C CE % / 7 8 9 * 4 5 6 - 1 2 3 + 0 ( ) ='.split(' ')
+    .map(x => {
+		//разбирает указанный текст "<button value="C">C</button>" как HTML или XML и вставляет полученные узлы (nodes) в DOM дерево в указанную позицию. 
+		//targetElement.insertAdjacentHTML(position, text);
+		//'beforebegin': до самого element (до открывающего тега).
+//'afterbegin': сразу после открывающего тега  element (перед первым потомком).
+//'beforeend': сразу перед закрывающим тегом element (после последнего потомка).
+//'afterend': после element (после закрывающего тега).
+        div.insertAdjacentHTML("beforeend", `<button value="${x}">${x}</button>`)
+		//,alert(x)    
+		
+		//,button.addEventListener('click', function () {calc(${x})})
+		
+    });
+
+
+
+//собираем масив всех селекторов кнопка вешаем на них прослушку события 
+
+document.querySelectorAll('button').forEach(button => {
+    button.addEventListener('click', function () {
+        // по клику вызывается функция со значением кнопки в качестве параметра
+		console.log(this.value)
+        calc(this.value)
+    })
+})
+
+
+
+document.addEventListener('keydown', event => {
+    if ((event.key).match(/[0-9%\/*\-+\(\)=]|Backspace|Enter/)) calc(event.key)
+})
+
+
+
+
+
+
+
+
+// функция принимает значение кнопки или ключ клавиши
+function calc(value) {
+    // если нажат знак равенства или Enter
+    if (value.match(/=|Enter/)) {
+        // пробуем выполнить операцию
+        try {
+            // вычисляем значение строки
+            // это возможно благодаря методу "evaluate" объекта "math"
+            // Math.trunc используется для округления до целого числа
+            output.textContent = Math.trunc(math.evaluate(output.textContent))
+            
+        // если операцию выполнить невозможно
+        } catch {
+            // сохраняем значение поля
+            let oldValue = output.textContent
+            // создаем новую переменную
+            let newValue = 'недопустимое выражение'
+            // выводим значение новой переменной в поле
+            output.textContent = newValue
+            // через полторы секунды возвращаем полю старое значение
+            setTimeout(() => {
+                output.textContent = oldValue
+            }, 1500)
+        }
+        
+    // если нажат символ "C"
+    } else if (value === 'C') {
+        // очищаем поле
+        output.textContent = ''
+    
+    // если нажат символ "СЕ" или Backspace
+    } else if (value.match(/CE|Backspace/)) {
+        // уменьшаем строку на один символ
+        output.textContent = output.textContent.substring(0, output.textContent.length - 1)
+        
+    // если нажата любая другая (отфильтрованная) кнопка или клавиша
+    } else {
+        // записываем ее значение в поле
+        output.textContent += value
+    }
+}
+</script>
+</html>
